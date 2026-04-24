@@ -1,0 +1,104 @@
+# ═══════════════════════════════════════════════════════════════
+# BOZGORAILUA — Inventario de conectores con nivel N1-N5
+# Fuente de verdad para T02 (find_connectors_enriched)
+#
+# ANCLAJE: Tabla LECTURA · Cambridge Organisation (A2→B1→B2)
+#   N1 = Automático (and, but, so, or)
+#   N2 = Controlado (because, although, when, if, which, who)
+#   N3 = Planificado (however, therefore, furthermore...)
+#   N4 = Complejo (despite the fact that, even though...)
+#   N5 = Experto (referencia anafórica cross-párrafo)
+#
+# ESTRUCTURA: categoría > tier > lista de {form, n}
+# VERSIÓN: v6c-T02 · marzo 2026
+# ═══════════════════════════════════════════════════════════════
+
+conectores:
+  aditivos:
+    basicos:
+      - {form: "and",      n: 1}
+      - {form: "also",     n: 1}
+      - {form: "too",      n: 1}
+      - {form: "as well",  n: 1}
+    intermedios:
+      - {form: "moreover",     n: 3}
+      - {form: "furthermore",  n: 3}
+      - {form: "in addition",  n: 3}
+      - {form: "besides",      n: 2}
+    avanzados:
+      - {form: "additionally",   n: 4}
+      - {form: "what is more",   n: 4}
+      - {form: "on top of that", n: 3}
+  causales:
+    basicos:
+      - {form: "so",       n: 1}
+      - {form: "because",  n: 2}
+    intermedios:
+      - {form: "since",         n: 2}
+      - {form: "therefore",     n: 3}
+      - {form: "as a result",   n: 3}
+      - {form: "consequently",  n: 3}
+    avanzados:
+      - {form: "thus",                 n: 4}
+      - {form: "hence",                n: 4}
+      - {form: "owing to",             n: 4}
+      - {form: "due to the fact that", n: 4}
+  adversativos:
+    basicos:
+      - {form: "but",  n: 1}
+      - {form: "yet",  n: 2}
+    intermedios:
+      - {form: "however",           n: 3}
+      - {form: "although",          n: 2}
+      - {form: "nevertheless",      n: 3}
+      - {form: "on the other hand", n: 3}
+    avanzados:
+      - {form: "nonetheless",            n: 4}
+      - {form: "notwithstanding",        n: 4}
+      - {form: "conversely",             n: 4}
+      - {form: "in contrast",            n: 4}
+      - {form: "despite the fact that",  n: 4}
+      - {form: "even though",            n: 4}
+  organizadores:
+    basicos:
+      - {form: "first",    n: 1}
+      - {form: "then",     n: 1}
+      - {form: "finally",  n: 1}
+      - {form: "or",       n: 1}
+    intermedios:
+      - {form: "to begin with",  n: 2}
+      - {form: "next",           n: 1}
+      - {form: "in conclusion",  n: 3}
+      - {form: "to sum up",      n: 3}
+    avanzados:
+      - {form: "subsequently",          n: 4}
+      - {form: "in the first instance", n: 4}
+      - {form: "to recapitulate",       n: 4}
+  subordinantes:
+    basicos:
+      - {form: "when",  n: 2}
+      - {form: "if",    n: 2}
+      - {form: "which", n: 2}
+      - {form: "who",   n: 2}
+      - {form: "where", n: 2}
+      - {form: "that",  n: 2}
+    intermedios:
+      - {form: "unless",       n: 3}
+      - {form: "whereas",      n: 3}
+      - {form: "provided that", n: 4}
+  concesivo_argumentativos:
+    avanzados:
+      - {form: "while some argue",    n: 4}
+      - {form: "it could be argued",  n: 4}
+      - {form: "some people believe", n: 3}
+      - {form: "on the one hand",     n: 3}
+  anaforicos:
+    avanzados:
+      - {form: "this argument",      n: 5}
+      - {form: "the aforementioned", n: 5}
+      - {form: "such claims",        n: 5}
+      - {form: "this contradicts",   n: 5}
+      - {form: "as mentioned above", n: 5}
+      - {form: "the above",          n: 5}
+      - {form: "this view",          n: 5}
+      - {form: "these arguments",    n: 5}

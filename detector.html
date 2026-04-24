@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detector IA v6 — Ikerlaria</title>
+<!-- MAPA DE SECCIONES
+  1-20     Head
+  20-270   CSS (paleta oscura morado/rojo/verde, snippets, tablas comparativas)
+  270-380  HTML estructura
+  380-700  JS (diccionarios pedagogicos + render con ejemplos concretos)
+-->
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #14141f;
+  --surface-2: #1c1c2b;
+  --border: #2a2a3a;
+  --text: #e8e8f0;
+  --muted: #8b8ba0;
+  --soft: #b8b8c8;
+  --human: #4ecdc4;
+  --human-glow: rgba(78, 205, 196, 0.15);
+  --ia: #ff6b6b;
+  --ia-glow: rgba(255, 107, 107, 0.15);
+  --sospechoso: #f59e0b;
+  --sospechoso-glow: rgba(245, 158, 11, 0.15);
+  --accent: #a78bfa;
+  --accent-soft: rgba(167, 139, 250, 0.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Segoe UI", -apple-system, "SF Pro Text", sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; padding: 2rem 1rem;
+  line-height: 1.5;
+}
+.container { max-width: 1100px; margin: 0 auto; }
+h1 { font-size: 1.5rem; color: var(--accent); margin-bottom: 0.3rem; }
+.subtitle { color: var(--muted); font-size: 0.88rem; margin-bottom: 1.6rem; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.4rem;
+  margin-bottom: 1.2rem;
+}
+.panel-title {
+  font-size: 0.78rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+}
+
+/* F6: ai_model panel */
+.ai-model-panel { border-left: 3px solid var(--ia); }
+.ai-model-main { display: flex; align-items: center; gap: 0.8rem; font-size: 1.1rem; margin-bottom: 0.8rem; }
+.conf-badge { font-size: 0.78rem; padding: 0.2rem 0.6rem; border-radius: 10px; font-weight: 500; }
+.conf-badge.ia { background: var(--ia-glow); color: var(--ia); }
+.conf-badge.sospechoso { background: var(--sospechoso-glow); color: var(--sospechoso); }
+.conf-badge.muted { background: rgba(139, 139, 160, 0.15); color: var(--muted); }
+.ai-model-proba { display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 0.8rem; }
+.proba-row { display: grid; grid-template-columns: 180px 1fr 60px; gap: 0.6rem; align-items: center; font-size: 0.85rem; }
+.proba-row.selected .proba-label { color: var(--ia); font-weight: 600; }
+.proba-label { color: var(--soft); }
+.proba-track { background: var(--surface-2); height: 8px; border-radius: 4px; overflow: hidden; }
+.proba-fill { background: var(--accent); height: 100%; transition: width 0.3s ease; }
+.proba-row.selected .proba-fill { background: var(--ia); }
+.proba-pct { text-align: right; color: var(--soft); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.ai-model-note { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.45; }
+
+/* F3: eco retórico panel */
+.eco-panel { border-left: 3px solid var(--accent); }
+.eco-intro { font-size: 0.82rem; color: var(--soft); margin-bottom: 0.8rem; line-height: 1.5; }
+.eco-grid { display: grid; grid-template-columns: 1fr; gap: 0.3rem; }
+.eco-row { display: grid; grid-template-columns: 1fr 90px auto; gap: 0.6rem; align-items: center;
+  padding: 0.4rem 0.6rem; background: var(--surface-2); border-radius: 6px; font-size: 0.85rem; }
+.eco-row.na { opacity: 0.55; }
+.eco-label { color: var(--soft); }
+.eco-val { text-align: right; color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
+.eco-meta { font-size: 0.72rem; color: var(--muted); font-style: italic; }
+
+/* F2b/F2c: witnesses + dyn lanzaderas en L3 */
+.witness-box, .dyn-launcher-box {
+  margin: 0.6rem 0 0.4rem; padding: 0.6rem 0.75rem; border-radius: 6px;
+  font-size: 0.83rem; background: var(--surface-2); border-left: 3px solid var(--muted);
+}
+.witness-box.human, .dyn-launcher-box.human { border-left-color: var(--human); background: var(--human-glow); }
+.witness-box.neutral, .dyn-launcher-box.neutral { border-left-color: var(--sospechoso); background: var(--sospechoso-glow); }
+
+.input-row { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-top: 0.9rem; }
+.cefr-group { display: flex; align-items: center; gap: 0.5rem; }
+.cefr-group label { font-size: 0.85rem; color: var(--soft); }
+select, button, textarea {
+  font-family: inherit; font-size: 0.92rem;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+}
+textarea { width: 100%; min-height: 220px; resize: vertical; }
+textarea:focus, select:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+select { cursor: pointer; }
+button {
+  background: var(--accent); color: #0a0a0f;
+  font-weight: 700; cursor: pointer; border: none;
+  padding: 0.65rem 1.4rem;
+}
+button:hover { opacity: 0.88; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary {
+  background: var(--surface); color: var(--soft); border: 1px solid var(--border);
+  font-weight: 500;
+}
+.word-count { color: var(--muted); font-size: 0.82rem; margin-top: 0.4rem; }
+#loading { color: var(--muted); font-size: 0.85rem; }
+
+#results { display: none; }
+
+/* -------------------- Banner veredicto -------------------- */
+.verdict-banner {
+  text-align: center; padding: 1.6rem 1rem;
+  border-radius: 12px; border: 2px solid; margin-bottom: 1.2rem;
+}
+.verdict-banner.human { background: var(--human-glow); border-color: var(--human); }
+.verdict-banner.ia { background: var(--ia-glow); border-color: var(--ia); }
+.verdict-banner.sospechoso { background: var(--sospechoso-glow); border-color: var(--sospechoso); }
+.verdict-text { font-size: 2.4rem; font-weight: 800; letter-spacing: 0.08em; }
+.verdict-banner.human .verdict-text { color: var(--human); }
+.verdict-banner.ia .verdict-text { color: var(--ia); }
+.verdict-banner.sospechoso .verdict-text { color: var(--sospechoso); }
+.verdict-sub { color: var(--soft); font-size: 0.9rem; margin-top: 0.5rem; }
+.verdict-reason {
+  color: var(--text); font-size: 0.95rem; margin-top: 0.7rem;
+  font-weight: 500; line-height: 1.5;
+}
+.warn-range {
+  background: var(--sospechoso-glow); border-left: 3px solid var(--sospechoso);
+  color: var(--sospechoso); padding: 0.55rem 0.9rem; border-radius: 6px;
+  font-size: 0.85rem; margin-bottom: 1rem;
+}
+
+/* -------------------- Nota estimada -------------------- */
+.nota-card {
+  background: linear-gradient(135deg, var(--accent-soft), var(--surface));
+  border: 1px solid var(--accent);
+  border-radius: 10px; padding: 1.2rem; margin-bottom: 1.2rem;
+  display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap;
+}
+.nota-card.suppressed {
+  background: var(--surface); border-color: var(--border);
+  color: var(--muted);
+}
+.nota-big {
+  font-size: 2.8rem; font-weight: 800; color: var(--accent);
+  line-height: 1; min-width: 90px; text-align: center;
+}
+.nota-card.suppressed .nota-big { color: var(--muted); font-size: 1.8rem; }
+.nota-info { flex: 1; min-width: 200px; }
+.nota-info h3 { font-size: 1.05rem; margin-bottom: 0.25rem; color: var(--text); }
+.nota-info .cefr-eq { color: var(--accent); font-weight: 700; font-size: 1.05rem; }
+.nota-card.suppressed .cefr-eq { color: var(--muted); }
+.nota-info .nota-meta { color: var(--muted); font-size: 0.8rem; margin-top: 0.3rem; }
+
+/* -------------------- Cards de niveles -------------------- */
+.niveles-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 1rem;
+}
+.nivel-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.1rem; position: relative;
+}
+.nivel-card.pro-ia { border-color: var(--ia); background: var(--ia-glow); }
+.nivel-card.pro-human { border-color: var(--human); background: var(--human-glow); }
+.nivel-card.neutral { border-color: var(--border); }
+.nivel-header {
+  display: flex; justify-content: space-between;
+  align-items: baseline; margin-bottom: 0.4rem;
+}
+.nivel-code {
+  font-size: 0.72rem; color: var(--accent); font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.nivel-tag {
+  font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.55rem;
+  border-radius: 10px; letter-spacing: 0.04em;
+}
+.nivel-tag.ia { background: var(--ia); color: #0a0a0f; }
+.nivel-tag.human { background: var(--human); color: #0a0a0f; }
+.nivel-tag.neutral { background: var(--border); color: var(--soft); }
+.nivel-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.2rem; }
+.nivel-subtitle {
+  font-size: 0.82rem; color: var(--muted); font-style: italic;
+  margin-bottom: 0.8rem;
+}
+.nivel-finding {
+  font-size: 0.9rem; color: var(--text); margin-bottom: 0.8rem;
+  padding: 0.65rem 0.8rem; background: rgba(0,0,0,0.3);
+  border-radius: 6px; border-left: 3px solid var(--accent);
+}
+.nivel-finding strong { color: var(--text); }
+
+/* Fragmentos de texto detectados */
+.snippet-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.6rem; }
+.snippet {
+  background: var(--bg); border: 1px solid var(--border);
+  border-left: 3px solid var(--ia);
+  border-radius: 5px; padding: 0.5rem 0.7rem;
+  font-size: 0.82rem; color: var(--soft);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+.snippet.ia { border-left-color: var(--ia); }
+.snippet.human { border-left-color: var(--human); }
+.snippet-label { font-size: 0.72rem; color: var(--accent); margin-bottom: 0.2rem; letter-spacing: 0.04em; }
+.snippet-text { color: var(--text); }
+.snippet-text mark {
+  background: var(--ia-glow); color: var(--ia);
+  padding: 0 3px; border-radius: 3px; font-weight: 600;
+}
+.snippet.human .snippet-text mark { background: var(--human-glow); color: var(--human); }
+
+/* Tabla comparativa valor vs umbral (L1) */
+.compare-table {
+  width: 100%; font-size: 0.82rem; margin-bottom: 0.6rem;
+  border-collapse: collapse; background: rgba(0,0,0,0.2);
+  border-radius: 6px; overflow: hidden;
+}
+.compare-table th, .compare-table td {
+  padding: 0.4rem 0.65rem; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.compare-table th { color: var(--accent); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table .val-over { color: var(--ia); font-weight: 700; }
+.compare-table .val-warn { color: var(--sospechoso); font-weight: 700; }
+.compare-table .val-ok { color: var(--human); font-weight: 600; }
+.compare-table .val-info { color: var(--soft); }
+
+/* Barra de balance L3 */
+.balance-bar {
+  display: flex; height: 28px; border-radius: 6px; overflow: hidden;
+  background: var(--border); margin-bottom: 0.6rem;
+}
+.balance-seg {
+  display: flex; align-items: center; justify-content: center;
+  color: #0a0a0f; font-weight: 700; font-size: 0.82rem;
+  transition: flex-grow 0.4s;
+}
+.balance-seg.ia { background: var(--ia); }
+.balance-seg.human { background: var(--human); }
+.balance-seg.mixed { background: var(--muted); color: #0a0a0f; }
+.tend-list { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.5rem; }
+.tend-row {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(0,0,0,0.3); padding: 0.4rem 0.65rem; border-radius: 5px;
+  font-size: 0.82rem;
+}
+.tend-row.ia { border-left: 3px solid var(--ia); }
+.tend-row.human { border-left: 3px solid var(--human); }
+.tend-row.mixed { border-left: 3px solid var(--muted); }
+.tend-label { flex: 1; color: var(--text); }
+.tend-pct { font-family: ui-monospace, monospace; font-size: 0.78rem; }
+.tend-pct.ia { color: var(--ia); }
+.tend-pct.human { color: var(--human); }
+.tend-pct.mixed { color: var(--muted); }
+
+/* Lista de top contributors L2 */
+.contrib-list { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.6rem; }
+.contrib-row {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(0,0,0,0.3); padding: 0.45rem 0.7rem; border-radius: 5px;
+  font-size: 0.85rem;
+}
+.contrib-row.ia { border-left: 3px solid var(--ia); }
+.contrib-row.humano { border-left: 3px solid var(--human); }
+.contrib-label { flex: 1; color: var(--text); }
+.contrib-arrow { font-size: 0.8rem; font-weight: 700; }
+.contrib-arrow.ia { color: var(--ia); }
+.contrib-arrow.humano { color: var(--human); }
+
+/* Chips auxiliares (palabras raras, combos) */
+.chip-list { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.55rem; }
+.chip {
+  display: inline-block; padding: 0.2rem 0.55rem;
+  font-size: 0.78rem; border-radius: 12px;
+  background: var(--accent-soft); color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.chip.ia { background: var(--ia-glow); color: var(--ia); border-color: var(--ia); }
+.chip.human { background: var(--human-glow); color: var(--human); border-color: var(--human); }
+.chip.neutral { background: var(--surface-2); color: var(--muted); border-color: var(--border); }
+
+/* Toggle explicacion */
+.expl-toggle {
+  color: var(--accent); font-size: 0.82rem;
+  cursor: pointer; text-decoration: underline;
+  user-select: none; display: inline-block; margin-top: 0.5rem;
+}
+.expl-toggle:hover { opacity: 0.85; }
+.expl-box {
+  display: none; margin-top: 0.55rem; padding: 0.75rem 0.9rem;
+  background: rgba(0,0,0,0.3); border-radius: 6px;
+  font-size: 0.85rem; color: var(--soft);
+  border-left: 2px solid var(--accent);
+}
+.expl-box.visible { display: block; }
+.expl-box p { margin-bottom: 0.5rem; }
+.expl-box p:last-child { margin-bottom: 0; }
+.expl-box strong { color: var(--text); }
+.expl-box em { color: var(--accent); font-style: normal; }
+
+/* Detalle JSON plegable */
+.detail-toggle {
+  color: var(--muted); font-size: 0.85rem;
+  cursor: pointer; text-decoration: underline;
+}
+.detail-box {
+  display: none; margin-top: 1rem; padding: 1rem;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; font-size: 0.78rem;
+  max-height: 420px; overflow: auto;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+.detail-box.visible { display: block; }
+
+footer {
+  color: var(--muted); font-size: 0.78rem; text-align: center;
+  margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Detector IA v6 — Ikerlaria</h1>
+  <p class="subtitle">
+    Herramienta para profesores · analiza una redacción, distingue escritura humana de IA
+    y, si es humana, estima la nota que le daría un evaluador ELLIPSE.
+  </p>
+
+  <div class="panel">
+    <div class="panel-title">Paso 1 — Pegar la redacción</div>
+    <textarea id="essay-input" placeholder="Pega aquí la redacción del alumno. Recomendado: 150-400 palabras."></textarea>
+    <div class="word-count" id="word-count"></div>
+    <div class="input-row">
+      <div class="cefr-group">
+        <label for="cefr-select">Nivel CEFR del alumno:</label>
+        <select id="cefr-select">
+          <option value="A2">A2</option>
+          <option value="B1" selected>B1</option>
+          <option value="B2">B2</option>
+          <option value="C1">C1</option>
+        </select>
+      </div>
+      <button id="btn-analyze" onclick="analyze()">Analizar redacción</button>
+      <button class="btn-secondary" onclick="clearAll()">Limpiar</button>
+      <span id="loading">Analizando… (30-60 s primera vez por sesión)</span>
+    </div>
+  </div>
+
+  <div id="results">
+    <div id="range-warning"></div>
+
+    <div class="verdict-banner" id="verdict-banner">
+      <div class="verdict-text" id="verdict-text"></div>
+      <div class="verdict-sub" id="verdict-sub"></div>
+      <div class="verdict-reason" id="verdict-reason"></div>
+    </div>
+
+    <div id="nota-container"></div>
+    <div id="ai-model-container"></div>
+    <div id="eco-retoric-container"></div>
+
+    <div class="panel">
+      <div class="panel-title">Paso 2 — Por qué el detector dice esto (4 análisis en paralelo)</div>
+      <div class="niveles-grid" id="niveles-grid"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Detalle técnico (para el investigador)</div>
+      <span class="detail-toggle" onclick="toggleJSON()">Mostrar/ocultar JSON completo</span>
+      <pre class="detail-box" id="json-box"></pre>
+    </div>
+  </div>
+
+  <footer>
+    Proyecto Bozgorailua · Tesis doctoral UPV/EHU · Piloto Barrutialde BHI
+  </footer>
+</div>
+
+<script>
+/* ==========================================================
+   DICCIONARIOS DE EXPLICACIONES
+   ========================================================== */
+
+const NIVEL_INFO = {
+  L0: {
+    code: "L0",
+    title: "Aperturas y plantillas copiadas",
+    subtitle: "¿Usa frases de apertura típicas de la IA?",
+    explain: `
+      <p><strong>Qué mira este análisis:</strong> compara las primeras frases del texto con un
+      catálogo de aperturas que las IAs usan una y otra vez. Por ejemplo
+      <em>"Winston Churchill's statement that…"</em> aparece idéntico en el 84 % de las
+      redacciones de GPT sobre Churchill. O la estructura escolar
+      <em>"On the one hand… On the other hand… To sum up…"</em>.</p>
+      <p><strong>Por qué es revelador:</strong> cada alumno humano tiene su propia voz;
+      la IA tiene 5-10 plantillas fijas que va rotando.</p>
+      <p><strong>Coste:</strong> instantáneo, sin modelos.</p>`,
+  },
+  L1: {
+    code: "L1",
+    title: "Perfil léxico para el nivel declarado",
+    subtitle: "¿El vocabulario y los errores encajan con el nivel del alumno?",
+    explain: `
+      <p><strong>Qué mira este análisis:</strong> compara cuatro señales de la redacción con
+      los valores típicos de alumnos reales del mismo nivel CEFR (A2, B1, B2 o C1) en el
+      corpus ELLIPSE (3.800 redacciones humanas etiquetadas por evaluadores expertos).</p>
+      <p><strong>Las cuatro señales son:</strong></p>
+      <p>• <strong>Riqueza léxica (MTLD)</strong>: cuántas palabras distintas usa el alumno.
+      Un A2 típico tiene MTLD 47; un B1, 54. Si una redacción declarada A2 tiene MTLD 85,
+      hay algo raro.<br>
+      • <strong>Texto corto pero muy denso</strong>: la IA suele meter mucha variedad léxica
+      en pocas palabras; un alumno humano de ese nivel no.<br>
+      • <strong>Errores L2</strong>: un A2/B1 real comete errores gramaticales. Si hay casi
+      ninguno y se declara A2, es sospechoso.<br>
+      • <strong>Palabras poco frecuentes</strong>: fuera de los 3.000 términos más comunes del
+      inglés. Un alumno de nivel bajo no escribe con palabras raras.</p>
+      <p><strong>Regla dura:</strong> si dos o más señales saltan, el detector dice IA
+      automáticamente. Esto fue el fallo conceptual de v4.2.</p>`,
+  },
+  L2: {
+    code: "L2",
+    title: "Huella estadística combinada",
+    subtitle: "¿Qué señales del texto pesan más hacia IA o hacia humano?",
+    explain: `
+      <p><strong>Qué mira este análisis:</strong> combina 11 medidas a la vez (riqueza léxica,
+      predictibilidad, cambios de emoción entre frases, errores, ritmo de las palabras
+      vacías…) y las pasa por un modelo entrenado sobre 7.000 redacciones de nivel mixto
+      (humanos ELLIPSE + IA de Claude, Gemini y GPT).</p>
+      <p><strong>Lo que se muestra aquí:</strong> las tres señales que más empujan la decisión
+      en esta redacción. Cada una indica si apunta hacia IA o hacia humano.</p>
+      <p><strong>Aviso honesto:</strong> en el entrenamiento este modelo separa perfectamente
+      los casos típicos. En casos frontera (un alumno bueno, una IA muy disfrazada) lo
+      decisivo son L1 (reglas duras por nivel) y L3 (huellas combinatorias).</p>`,
+  },
+  L3: {
+    code: "L3",
+    title: "Huellas combinatorias (estilo global)",
+    subtitle: "¿En qué zonas estilísticas del corpus cae el texto?",
+    explain: `
+      <p><strong>Qué mira este análisis:</strong> cada redacción tiene un perfil en 8
+      dimensiones (riqueza léxica, conectores argumentativos, estructura sintáctica,
+      cohesión, sentimiento, morfología verbal, agencia, ortografía). Para cada dimensión
+      el corpus se agrupó en "lanzaderas" — zonas estilísticas estables. Se comprueba
+      en cuáles cae esta redacción y qué domina en esas zonas.</p>
+      <p><strong>Qué se muestra:</strong></p>
+      <p>• <strong>Tendencia por dimensión</strong>: para cada una de las 8 dimensiones, el %
+      del corpus IA que ocupa la misma zona que el texto. Si >85 % es IA, la zona es
+      "mayoría IA". Si >85 % es humano, "mayoría humana". Si está entre 15 % y 85 %, "mixta".<br>
+      • <strong>Firmas 100 % IA (vetos)</strong>: 40 combinaciones exactas aparecen ≥5 veces
+      en corpus IA y nunca en humano. Si la redacción encaja exactamente en una, IA automático.<br>
+      • <strong>Zonas 100 % humanas (vetos)</strong>: 13 lanzaderas con ≥20 alumnos humanos y
+      0 IA. Si el texto pasa por una, es candidato a HUMANO automático.</p>
+      <p><strong>Lo potente:</strong> aunque el combo exacto sea único (lo normal en humanos:
+      94 % son únicos), la suma de tendencias por dimensión ya da señal direccional.</p>`,
+  },
+};
+
+const L0_HITS_LABEL = {
+  churchill_gpt_template: "Apertura tipo GPT sobre Churchill",
+  churchill_gemini_sampler: "Apertura tipo Gemini sobre Churchill",
+  claude_markdown_title: "Título en markdown al inicio (tipo Claude)",
+  canonical_argumentative: "Estructura escolar \"On the one hand / On the other hand / To sum up\"",
+  generic_opener_nowadays: "Apertura genérica \"Nowadays\" / \"In today's world\"",
+  in_my_opinion_opener: "Apertura templada \"In my opinion\" / \"From my point of view\"",
+  tatara_claude_art_of: "Apertura tipo Claude sobre tatara (\"The ancient art of tatara reveals...\")",
+  tatara_gpt_whether_protect: "Apertura tipo GPT sobre tatara (\"Whether it is wiser to protect what we have...\")",
+  tatara_gemini_dilemma: "Apertura tipo Gemini sobre tatara (\"The perennial dilemma of safeguarding...\")",
+  yakishime_claude_harms: "Apertura tipo Claude sobre yakishime (\"Protecting people from failure harms...\")",
+  yakishime_gemini_debate: "Apertura tipo Gemini sobre yakishime (\"The debate over shielding individuals...\")",
+  yakishime_gpt_can_help: "Apertura tipo GPT sobre yakishime (\"Protecting people from failure can help in the short term\")",
+};
+
+const L1_RULE_SHORT = {
+  mtld_over_p95_cefr: "Vocabulario demasiado variado para el nivel",
+  shorts_and_dense: "Texto corto pero muy denso",
+  no_l2_errors: "No hay errores típicos de L2",
+  lexfreq_over_p95_cefr: "Demasiadas palabras raras para el nivel",
+};
+
+const ERROR_KIND_LABEL = {
+  missing_apostrophe: "Apóstrofe",
+  lowercase_start: "Minúscula inicial",
+  missing_space: "Falta espacio",
+  sv_agreement: "Concordancia",
+  repeated_word: "Repetición",
+};
+
+/* ==========================================================
+   UI handlers
+   ========================================================== */
+
+const essay = document.getElementById("essay-input");
+const wc = document.getElementById("word-count");
+
+essay.addEventListener("input", () => {
+  const n = essay.value.trim().split(/\s+/).filter(Boolean).length;
+  wc.textContent = n > 0 ? `${n} palabras` : "";
+});
+essay.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.key === "Enter") analyze();
+});
+
+async function analyze() {
+  const text = essay.value.trim();
+  const cefr = document.getElementById("cefr-select").value;
+  if (text.length < 50) {
+    alert("Texto demasiado corto (mínimo 50 caracteres).");
+    return;
+  }
+  const btn = document.getElementById("btn-analyze");
+  const loading = document.getElementById("loading");
+  btn.disabled = true;
+  loading.style.display = "inline";
+  try {
+    const resp = await fetch("/api/detect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, cefr }),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${resp.status}`);
+    }
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    renderResult(data);
+  } catch (e) {
+    alert("Error: " + e.message + "\n\nAsegúrate de que el servidor (detector.bat / detector.sh) está corriendo en el puerto 5116.\nSi es la primera vez, puede tardar 1-2 min en descargar GPT-2 y LanguageTool.");
+  } finally {
+    btn.disabled = false;
+    loading.style.display = "none";
+  }
+}
+
+function clearAll() {
+  essay.value = "";
+  wc.textContent = "";
+  document.getElementById("results").style.display = "none";
+}
+
+function toggleJSON() { document.getElementById("json-box").classList.toggle("visible"); }
+function toggleExpl(id) { document.getElementById(id).classList.toggle("visible"); }
+
+function escHtml(s) {
+  return String(s || "").replace(/[&<>"']/g,
+    c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function highlight(snippet, term) {
+  if (!snippet || !term) return escHtml(snippet);
+  const esc = escHtml(snippet);
+  const termEsc = escHtml(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return esc.replace(new RegExp(termEsc, "i"), m => `<mark>${m}</mark>`);
+}
+
+/* ==========================================================
+   RENDER
+   ========================================================== */
+
+function renderResult(data) {
+  document.getElementById("results").style.display = "block";
+  const warnDiv = document.getElementById("range-warning");
+  warnDiv.innerHTML = data.out_of_range
+    ? `<div class="warn-range">⚠ Texto fuera del rango 120-500 palabras recomendado. La fiabilidad baja.</div>`
+    : "";
+
+  renderVerdict(data);
+  renderNota(data);
+  renderAiModel(data);
+  renderEcoRetoric(data);
+  renderNiveles(data);
+  document.getElementById("json-box").textContent = JSON.stringify(data, null, 2);
+  document.getElementById("results").scrollIntoView({ behavior: "smooth" });
+}
+
+function renderVerdict(data) {
+  const banner = document.getElementById("verdict-banner");
+  const v = data.label || "?";
+  const cls = v === "HUMANO" ? "human" : (v === "IA" ? "ia" : "sospechoso");
+  banner.className = "verdict-banner " + cls;
+  const icons = { HUMANO: "✓", IA: "⚠", SOSPECHOSO: "?" };
+  document.getElementById("verdict-text").textContent = (icons[v] || "") + " " + v;
+  document.getElementById("verdict-sub").innerHTML =
+    `${data.n_words} palabras · nivel declarado: <strong>${data.cefr_declared}</strong>`;
+  document.getElementById("verdict-reason").innerHTML = reasonPlain(data);
+}
+
+function reasonPlain(data) {
+  // Traduccion del "reason" tecnico a algo entendible por profesor.
+  const l1rules = (data.l1 || {}).fired_rules || [];
+  const l3 = data.l3 || {};
+  const l0 = data.l0 || {};
+
+  if ((data.l1 || {}).veto_ia) {
+    const ruleNames = l1rules.map(r => L1_RULE_SHORT[r] || r);
+    return `Decisión: <strong>IA</strong> porque el perfil del texto no encaja con un alumno ${data.cefr_declared}: `
+      + ruleNames.join(", ") + ".";
+  }
+  if (l3.in_exclusive_ia) {
+    return `Decisión: <strong>IA</strong> porque el estilo global del texto coincide con una firma combinatoria que solo aparece en textos IA.`;
+  }
+  if ((l3.human_pure_hits || []).length && !(l0.hits || []).length && l1rules.length === 0) {
+    return `Decisión: <strong>HUMANO</strong> porque el texto pasa por zonas estilísticas donde nunca aparece una IA y no dispara ninguna regla de alarma.`;
+  }
+  if (data.label === "IA") {
+    return `Decisión: <strong>IA</strong> — la combinación de señales (aperturas, perfil léxico, estilo) supera el umbral de alarma.`;
+  }
+  if (data.label === "SOSPECHOSO") {
+    return `Decisión: <strong>SOSPECHOSO</strong> — algunas señales apuntan a IA pero no hay evidencia concluyente. Revisión humana recomendada.`;
+  }
+  return `Decisión: <strong>HUMANO</strong> — las señales del texto encajan con escritura humana.`;
+}
+
+/* F6: clasificador Claude/Gemini/GPT cuando verdict=IA */
+const MODEL_LABELS = {
+  claude: "Claude (Anthropic)",
+  gemini: "Gemini (Google)",
+  gpt: "GPT (OpenAI)",
+};
+
+function renderAiModel(data) {
+  const c = document.getElementById("ai-model-container");
+  const ai = data.ai_model || {};
+  if (ai.suppressed || !ai.predicted_model) {
+    c.innerHTML = "";
+    return;
+  }
+  const conf = ai.confidence || 0;
+  const proba = ai.proba || {};
+  const pctStr = (p) => (p * 100).toFixed(1) + "%";
+  const confLabel = conf >= 0.7 ? "alta" : (conf >= 0.5 ? "media" : "baja");
+  const confCls = conf >= 0.7 ? "ia" : (conf >= 0.5 ? "sospechoso" : "muted");
+  const bars = Object.entries(proba)
+    .sort((a, b) => b[1] - a[1])
+    .map(([model, p]) => {
+      const width = Math.max(1, p * 100);
+      const selected = model === ai.predicted_model ? " selected" : "";
+      return `<div class="proba-row${selected}">
+        <span class="proba-label">${escHtml(MODEL_LABELS[model] || model)}</span>
+        <div class="proba-track"><div class="proba-fill" style="width:${width}%"></div></div>
+        <span class="proba-pct">${pctStr(p)}</span>
+      </div>`;
+    }).join("");
+  c.innerHTML = `
+    <div class="panel ai-model-panel">
+      <div class="panel-title">Modelo de IA identificado</div>
+      <div class="ai-model-main">
+        <strong>${escHtml(MODEL_LABELS[ai.predicted_model] || ai.predicted_model)}</strong>
+        <span class="conf-badge ${confCls}">confianza ${confLabel} (${pctStr(conf)})</span>
+      </div>
+      <div class="ai-model-proba">${bars}</div>
+      <p class="ai-model-note">Clasificador entrenado sobre 2.715 redacciones IA (macro-F1 = 0.97 en validación cruzada).
+        Si la confianza es baja (&lt;50 %), el veredicto del modelo concreto es orientativo.</p>
+    </div>`;
+}
+
+/* F3: eco retórico T4 */
+const ECO_LABELS = {
+  eco_anchor_literal: "Copia de frases-ancla del prompt",
+  eco_chiasmus: "Quiasmos (figura retórica A-es-A, A-de-A)",
+  eco_causal_chain: "Cadena causal (conectores causales por 1.000 palabras)",
+  eco_destructive_action: "Acción destructiva (verbos/nombres por 1.000 palabras)",
+  eco_topic: "Cercanía al tema del prompt",
+  eco_l2_ness_in_output: "Perfil L2 (errores + sofisticación léxica)",
+};
+
+function renderEcoRetoric(data) {
+  const c = document.getElementById("eco-retoric-container");
+  const feats = data.explain && data.explain.eco ? data.explain.eco : null;
+  // Fallback: busca keys en features si explain no las tiene separadas
+  const ecoData = {};
+  const src = feats || data.features || {};
+  for (const key of Object.keys(ECO_LABELS)) {
+    if (src[key] !== undefined) ecoData[key] = src[key];
+  }
+  // Si todo es NaN/null/undefined, no mostrar
+  const hasValues = Object.values(ecoData).some(v => v !== null && v !== undefined && !Number.isNaN(v));
+  if (!hasValues) {
+    c.innerHTML = "";
+    return;
+  }
+  const rows = Object.entries(ECO_LABELS).map(([key, label]) => {
+    const v = ecoData[key];
+    if (v === null || v === undefined || Number.isNaN(v)) {
+      return `<div class="eco-row na"><span class="eco-label">${label}</span>
+        <span class="eco-val">—</span>
+        <span class="eco-meta">no aplica a este prompt</span></div>`;
+    }
+    let display;
+    if (key === "eco_topic" || key === "eco_anchor_literal" || key === "eco_l2_ness_in_output") {
+      display = (v * 100).toFixed(1) + "%";
+    } else if (key === "eco_chiasmus") {
+      display = v.toFixed(3) + " / frase";
+    } else {
+      display = v.toFixed(2) + " ‰";
+    }
+    return `<div class="eco-row"><span class="eco-label">${label}</span>
+      <span class="eco-val">${display}</span></div>`;
+  }).join("");
+  c.innerHTML = `
+    <div class="panel eco-panel">
+      <div class="panel-title">Eco del prompt (señales retóricas específicas)</div>
+      <p class="eco-intro">Estas señales miden cuánto el texto refleja palabras y estructuras del prompt
+        original. Valores altos en la primera columna (ancla, quiasmo, causal, destructivo) son típicos
+        de IA que "copia" el prompt; se muestran sólo cuando el prompt tiene el componente declarado.</p>
+      <div class="eco-grid">${rows}</div>
+    </div>`;
+}
+
+function renderNota(data) {
+  const c = document.getElementById("nota-container");
+  const g = data.grade || {};
+  if (g.suppressed) {
+    c.innerHTML = `
+      <div class="nota-card suppressed">
+        <div class="nota-big">—</div>
+        <div class="nota-info">
+          <h3>Nota no estimada</h3>
+          <p>${escHtml(g.reason || "El texto parece IA; calcular una nota no tendría sentido pedagógico.")}</p>
+        </div>
+      </div>`;
+    return;
+  }
+  if (g.overall_estimated == null) { c.innerHTML = ""; return; }
+  const nota = g.overall_estimated;
+  const mae = (g.mae_cv || 0).toFixed(2);
+  const bajo = Math.max(1, nota - g.mae_cv).toFixed(2);
+  const alto = Math.min(5, nota + g.mae_cv).toFixed(2);
+  c.innerHTML = `
+    <div class="nota-card">
+      <div class="nota-big">${nota.toFixed(2)}</div>
+      <div class="nota-info">
+        <h3>Nota estimada (escala ELLIPSE Overall 1.0 - 5.0)</h3>
+        <p>Nivel CEFR aproximado: <span class="cefr-eq">${g.cefr_equivalent}</span>.
+           Intervalo orientativo: <strong>${bajo} - ${alto}</strong> (error medio ± ${mae}).</p>
+        <p class="nota-meta">Basado en 3.911 redacciones humanas ELLIPSE con Overall validado por evaluadores expertos.
+          Es una estimación orientativa, no una nota oficial.</p>
+      </div>
+    </div>`;
+}
+
+function renderNiveles(data) {
+  const grid = document.getElementById("niveles-grid");
+  grid.innerHTML = "";
+  grid.appendChild(buildNivelL0(data.l0 || {}));
+  grid.appendChild(buildNivelL1(data.l1 || {}, data.explain || {}, data.cefr_declared));
+  grid.appendChild(buildNivelL2(data.l2 || {}));
+  grid.appendChild(buildNivelL3(data.l3 || {}));
+}
+
+/* ---------- L0 ---------- */
+function buildNivelL0(l0) {
+  const info = NIVEL_INFO.L0;
+  const hits = l0.hits || [];
+  const snippets = l0.snippets || {};
+  let bodyHtml;
+  if (hits.length > 0) {
+    const items = hits.map(h => {
+      const lbl = L0_HITS_LABEL[h] || h;
+      const snip = snippets[h] || "";
+      return `<div class="snippet ia">
+        <div class="snippet-label">${escHtml(lbl)}</div>
+        <div class="snippet-text">${escHtml(snip)}</div>
+      </div>`;
+    }).join("");
+    bodyHtml = `
+      <div class="nivel-finding"><strong>${hits.length} patrón${hits.length === 1 ? "" : "es"}</strong> de apertura/plantilla detectado${hits.length === 1 ? "" : "s"}. El texto del alumno contiene:</div>
+      <div class="snippet-list">${items}</div>`;
+  } else {
+    bodyHtml = `
+      <div class="nivel-finding">No se detecta ninguna plantilla de apertura típica de IA. Buena señal: el texto empieza con voz propia.</div>`;
+  }
+  const tag = hits.length > 0 ? "ia" : "human";
+  const cls = hits.length > 0 ? "pro-ia" : "pro-human";
+  return makeCard(info, cls, tag, hits.length > 0 ? "Tipo IA" : "Tipo humano", bodyHtml, "l0");
+}
+
+/* ---------- L1 ---------- */
+function buildNivelL1(l1, explain, cefr) {
+  const info = NIVEL_INFO.L1;
+  const rules = l1.fired_rules || [];
+  const values = (explain || {}).values || {};
+  const expected = (explain || {}).expected_by_cefr || {};
+  const rares = (explain || {}).rare_words_in_text || [];
+  const errors = (explain || {}).error_examples || [];
+
+  // Tabla comparativa valor vs umbrales. Amarillo = entre p75 y p95.
+  // Rojo = por encima de p95. Verde = debajo de p75.
+  const rows = [];
+  rows.push(rowCompareMtld("Riqueza léxica (MTLD)", values.mtld, expected, cefr));
+  rows.push(rowCompareSimple("Errores detectados", values.errant_count,
+      `un L2 real ≥ ${expected.errant_p5_l2 ?? "-"} (p5)`,
+      rules.includes("no_l2_errors"), "lt"));
+  rows.push(rowCompareLexfreq("% palabras fuera del vocabulario 3k", values.lexfreq_band_3k_pct, expected, cefr));
+
+  let finding;
+  if (rules.length >= 2) {
+    finding = `<strong>Alerta:</strong> ${rules.length} señales saltan para un alumno <em>${cefr}</em>. Esto fuerza veredicto IA.`;
+  } else if (rules.length === 1) {
+    finding = `Una señal salta, pero sola no decide.`;
+  } else {
+    finding = `Las cuatro señales encajan con un alumno <em>${cefr}</em> real.`;
+  }
+
+  let extras = "";
+  if (rares.length > 0) {
+    const chipsHtml = rares.map(r =>
+      `<span class="chip ${rules.includes("lexfreq_over_p95_cefr") ? "ia" : "neutral"}">${escHtml(r.word)}</span>`
+    ).join("");
+    extras += `<div style="font-size:.8rem;color:var(--muted);margin-top:.4rem;">Ejemplos de palabras poco frecuentes del texto:</div><div class="chip-list">${chipsHtml}</div>`;
+  }
+  if (errors.length > 0) {
+    const errHtml = errors.slice(0, 4).map(e => {
+      const kind = ERROR_KIND_LABEL[e.kind] || e.kind;
+      return `<div class="snippet human">
+        <div class="snippet-label">${escHtml(kind)}${e.suggest ? " → " + escHtml(e.suggest) : ""}</div>
+        <div class="snippet-text">${highlight(e.snippet, e.found)}</div>
+      </div>`;
+    }).join("");
+    extras += `<div style="font-size:.8rem;color:var(--muted);margin-top:.5rem;">Errores detectados en el texto:</div><div class="snippet-list">${errHtml}</div>`;
+  }
+
+  const cls = rules.length >= 2 ? "pro-ia" : (rules.length > 0 ? "neutral" : "pro-human");
+  const tag = rules.length >= 2 ? "ia" : (rules.length === 0 ? "human" : "neutral");
+  const tagText = rules.length >= 2 ? "Alerta" : (rules.length === 0 ? "Coherente" : "Una señal");
+
+  const body = `
+    <div class="nivel-finding">${finding}</div>
+    <table class="compare-table">
+      <thead><tr><th>Señal</th><th>Esta redacción</th><th>Esperado en ${cefr}</th></tr></thead>
+      <tbody>${rows.join("")}</tbody>
+    </table>
+    ${extras}`;
+  return makeCard(info, cls, tag, tagText, body, "l1");
+}
+
+function rowCompareMtld(label, value, expected, cefr) {
+  if (value == null) return rowCompareSimple(label, value, "-", false, "gt");
+  const p75 = expected.mtld_p75, p95 = expected.mtld_p95;
+  let cls = "val-ok", icon = "✓ ";
+  if (p95 != null && value > p95) { cls = "val-over"; icon = "⚠ "; }
+  else if (p75 != null && value > p75) { cls = "val-warn"; icon = "○ "; }
+  const thr = `p50 ${expected.mtld_p50 ?? "-"} · p75 ${p75 ?? "-"} · p95 ${p95 ?? "-"}`;
+  return `<tr>
+    <td>${escHtml(label)}</td>
+    <td class="${cls}">${icon}${escHtml(String(value))}</td>
+    <td class="val-info">${escHtml(thr)}</td>
+  </tr>`;
+}
+
+function rowCompareLexfreq(label, value, expected, cefr) {
+  if (value == null) return rowCompareSimple(label, value, "-", false, "gt");
+  const p95 = expected.lexfreq_p95;
+  // Aproximacion de p75 por interpolacion si no esta expuesto (usamos 80 % de p95).
+  const p75 = p95 != null ? Math.round(p95 * 0.8 * 10) / 10 : null;
+  let cls = "val-ok", icon = "✓ ";
+  if (p95 != null && value > p95) { cls = "val-over"; icon = "⚠ "; }
+  else if (p75 != null && value > p75) { cls = "val-warn"; icon = "○ "; }
+  const thr = `p95 ${cefr} = ${p95 ?? "-"}`;
+  return `<tr>
+    <td>${escHtml(label)}</td>
+    <td class="${cls}">${icon}${escHtml(String(value))}</td>
+    <td class="val-info">${escHtml(thr)}</td>
+  </tr>`;
+}
+
+function rowCompareSimple(label, value, expected, fired, direction) {
+  // direction: "gt" (se dispara si valor > umbral) o "lt" (si valor < umbral).
+  const valStr = value == null ? "—" : value;
+  const cls = fired ? "val-over" : "val-ok";
+  const icon = fired ? "⚠ " : "✓ ";
+  return `<tr>
+    <td>${escHtml(label)}</td>
+    <td class="${cls}">${icon}${escHtml(String(valStr))}</td>
+    <td class="val-info">${escHtml(expected)}</td>
+  </tr>`;
+}
+
+/* ---------- L2 ---------- */
+function buildNivelL2(l2) {
+  const info = NIVEL_INFO.L2;
+  const contribs = l2.top_contributors || [];
+  let finding;
+  let cls, tag, tagText;
+  const iaHits = contribs.filter(c => c.direction === "ia").length;
+  const humHits = contribs.filter(c => c.direction === "humano").length;
+
+  if (iaHits >= 2) {
+    finding = `Las señales que más pesan apuntan hacia <strong>IA</strong>.`;
+    cls = "pro-ia"; tag = "ia"; tagText = "Tipo IA";
+  } else if (humHits >= 2) {
+    finding = `Las señales que más pesan apuntan hacia <strong>escritura humana</strong>.`;
+    cls = "pro-human"; tag = "human"; tagText = "Tipo humano";
+  } else {
+    finding = `Las señales están divididas: ni IA clara ni humano claro.`;
+    cls = "neutral"; tag = "neutral"; tagText = "Mezcla";
+  }
+
+  const list = contribs.map(c => {
+    const arrow = c.direction === "ia" ? "→ IA" : "→ humano";
+    const rowCls = c.direction === "ia" ? "ia" : "humano";
+    return `<div class="contrib-row ${rowCls}">
+      <span class="contrib-label">${escHtml(c.label)}</span>
+      <span class="contrib-arrow ${rowCls}">${arrow}</span>
+    </div>`;
+  }).join("");
+
+  const body = `
+    <div class="nivel-finding">${finding}</div>
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:.3rem;">Las 3 señales que más pesan en esta redacción:</div>
+    <div class="contrib-list">${list}</div>`;
+  return makeCard(info, cls, tag, tagText, body, "l2");
+}
+
+/* ---------- L3 ---------- */
+function buildNivelL3(l3) {
+  const info = NIVEL_INFO.L3;
+  const exIA = l3.in_exclusive_ia;
+  const humans = l3.human_pure_hits || [];
+  const tendencies = l3.tendencies || [];
+  const nIA = l3.n_ia_dominant || 0;
+  const nHum = l3.n_human_dominant || 0;
+  const nMix = l3.n_mixed || 0;
+  const total = Math.max(1, nIA + nHum + nMix);
+
+  let finding, cls, tag, tagText;
+
+  if (exIA) {
+    finding = `<strong>Huella IA detectada:</strong> el estilo global coincide con una de las 40 firmas 100 % IA del corpus.`;
+    cls = "pro-ia"; tag = "ia"; tagText = "Huella IA";
+  } else if (humans.length > 0) {
+    finding = `<strong>Zona humana:</strong> el texto pasa por ${humans.length} lanzadera${humans.length > 1 ? "s" : ""} donde nunca aparece una IA.`;
+    cls = "pro-human"; tag = "human"; tagText = "Zona humana";
+  } else if (nIA >= 3 && nIA > nHum) {
+    finding = `El texto cae en <strong>${nIA} de ${total}</strong> lanzaderas donde más del 85 % del corpus es IA.`;
+    cls = "pro-ia"; tag = "ia"; tagText = "Tendencia IA";
+  } else if (nHum >= 3 && nHum > nIA) {
+    finding = `El texto cae en <strong>${nHum} de ${total}</strong> lanzaderas donde más del 85 % del corpus es humano.`;
+    cls = "pro-human"; tag = "human"; tagText = "Tendencia humana";
+  } else if (nIA > 0 && nIA === nHum) {
+    finding = `Perfil mixto: ${nIA} zonas IA-dominantes y ${nHum} humano-dominantes. Sin tendencia clara.`;
+    cls = "neutral"; tag = "neutral"; tagText = "Mixto";
+  } else {
+    finding = `El texto pasa por zonas mayoritariamente mixtas (ni claramente IA ni claramente humanas).`;
+    cls = "neutral"; tag = "neutral"; tagText = "Mixto";
+  }
+
+  // Barra de balance
+  const pctIA = (nIA / total) * 100;
+  const pctHum = (nHum / total) * 100;
+  const pctMix = (nMix / total) * 100;
+  let barHtml = `<div class="balance-bar">`;
+  if (nIA > 0) barHtml += `<div class="balance-seg ia" style="flex:${nIA}" title="${nIA} zonas IA-dominantes">${nIA} IA</div>`;
+  if (nMix > 0) barHtml += `<div class="balance-seg mixed" style="flex:${nMix}" title="${nMix} zonas mixtas">${nMix} mixta${nMix === 1 ? "" : "s"}</div>`;
+  if (nHum > 0) barHtml += `<div class="balance-seg human" style="flex:${nHum}" title="${nHum} zonas humano-dominantes">${nHum} humana${nHum === 1 ? "" : "s"}</div>`;
+  barHtml += `</div>`;
+
+  // Lista ordenada: primero IA-dominant, luego mixed, luego human-dominant.
+  const ordered = [...tendencies].sort((a, b) => {
+    const order = { ia_dominant: 0, mixed: 1, human_dominant: 2, sparse: 3 };
+    return order[a.tendency] - order[b.tendency];
+  });
+  const listHtml = ordered.map(t => {
+    const pct = Math.round((t.pct_ia || 0) * 100);
+    const rowCls = t.tendency === "ia_dominant" ? "ia"
+      : t.tendency === "human_dominant" ? "human" : "mixed";
+    const label = PRETTY_GROUP[t.group] || t.group;
+    const direction = t.tendency === "ia_dominant" ? "mayoría IA"
+      : t.tendency === "human_dominant" ? "mayoría humana" : "mixta";
+    return `<div class="tend-row ${rowCls}">
+      <span class="tend-label">${escHtml(label)}: ${escHtml(direction)}</span>
+      <span class="tend-pct ${rowCls}">${pct}% IA (n=${t.n_human + t.n_ia})</span>
+    </div>`;
+  }).join("");
+
+  const humanPureChips = humans.length
+    ? `<div class="chip-list" style="margin-bottom:.6rem;">${humans.map(h => `<span class="chip human">Zona 100 % humana: ${escHtml(prettyHumanPure(h))}</span>`).join("")}</div>`
+    : "";
+
+  // F2b: testigos dinamicos humanos (5 marcadores, especificidad 92-94%)
+  const witnesses = l3.witnesses || {};
+  const wFired = witnesses.n_fired || 0;
+  let witnessHtml = "";
+  if (wFired > 0) {
+    const wCls = witnesses.veto_human ? "human" : "neutral";
+    const wText = witnesses.veto_human
+      ? `<strong>Veto humano activo:</strong> ${wFired} de 5 testigos dinámicos humanos disparados.`
+      : `${wFired} de 5 testigos dinámicos humanos disparados (necesita ≥2 para veto).`;
+    const wList = (witnesses.fired_names || []).map(f => `<span class="chip ${wCls}">${escHtml(prettyWitnessName(f))}</span>`).join("");
+    witnessHtml = `<div class="witness-box ${wCls}">${wText}<div class="chip-list" style="margin-top:.4rem;">${wList}</div></div>`;
+  }
+
+  // F2c: lanzaderas dinamicas humano-puras (5 GMM G_DYN*)
+  const dynL = l3.dyn_launchers || {};
+  const dynHumHits = dynL.human_pure_hits || [];
+  let dynLauncherHtml = "";
+  if (dynHumHits.length > 0) {
+    const dynCls = dynL.candidate_human_veto ? "human" : "neutral";
+    const chips = dynHumHits.map(h => `<span class="chip ${dynCls}">${escHtml(prettyDynLauncher(h))}</span>`).join("");
+    dynLauncherHtml = `<div class="dyn-launcher-box ${dynCls}">
+      <strong>Lanzaderas dinámicas humano-puras:</strong> el texto cae en zonas del espacio dinámico donde nunca aparece una IA.
+      <div class="chip-list" style="margin-top:.4rem;">${chips}</div>
+    </div>`;
+  }
+
+  const body = `
+    <div class="nivel-finding">${finding}</div>
+    ${barHtml}
+    ${humanPureChips}
+    ${witnessHtml}
+    ${dynLauncherHtml}
+    <div style="font-size:.78rem;color:var(--muted);margin:.4rem 0 .3rem;">Detalle por dimensión (qué tipo de corpus domina la zona donde cae el texto):</div>
+    <div class="tend-list">${listHtml}</div>`;
+  return makeCard(info, cls, tag, tagText, body, "l3");
+}
+
+const WITNESS_LABELS = {
+  "dyn_adsr__slope_peak_dip": "Asimetría pico-valle (ADSR)",
+  "dyn_adsr__ratio_cv": "Variabilidad de cocientes (ADSR)",
+  "dyn_adsr__rebound_ratio_mean": "Rebote medio post-pico",
+  "dyn_crest__valley_crest_needle_all": "Profundidad de valles (crest)",
+  "dyn_deep__frac_above_h99": "Picos extremos de sorpresa",
+};
+function prettyWitnessName(key) { return WITNESS_LABELS[key] || key; }
+
+const DYN_LAUNCHER_LABELS = {
+  "G_DYN1_full_contour": "Contorno completo",
+  "G_DYN2_fragment_v2": "Fragmentación",
+  "G_DYN3_entropy_rank": "Entropía / rango",
+  "G_DYN4_adsr_coupling": "Acoplamiento ADSR",
+  "G_DYN5_deep_structure": "Estructura profunda",
+};
+function prettyDynLauncher(key) {
+  const base = key.replace(/:L_\d+$/, "");
+  return DYN_LAUNCHER_LABELS[base] || key;
+}
+
+const PRETTY_GROUP = {
+  G1_riqueza_lexica: "Riqueza léxica",
+  G2_relaciones_argumentativas: "Conectores argumentativos",
+  G3_estructura_sintactico_discursiva: "Estructura sintáctica",
+  G4_cohesion_coreferencia: "Cohesión y referencia",
+  G5_sentimiento_afecto: "Sentimiento y afecto",
+  G7_morfo_sintaxis_verbal: "Morfología verbal",
+  G8_agencia: "Agencia (sujetos activos)",
+  G9_errores_ortografia: "Errores ortográficos",
+};
+
+function prettyHumanPure(key) {
+  const [group, lanz] = key.split(":");
+  const GROUP_LABEL = {
+    G1_riqueza_lexica: "Riqueza léxica",
+    G2_relaciones_argumentativas: "Conectores argumentativos",
+    G3_estructura_sintactico_discursiva: "Estructura sintáctica",
+    G4_cohesion_coreferencia: "Cohesión y referencia",
+    G5_sentimiento_afecto: "Sentimiento y afecto",
+    G7_morfo_sintaxis_verbal: "Morfología verbal",
+    G8_agencia: "Agencia",
+    G9_errores_ortografia: "Errores ortográficos",
+  };
+  const lbl = GROUP_LABEL[group] || group;
+  const n = (lanz || "L_0").replace("L_", "");
+  return `${lbl} · lanzadera ${n}`;
+}
+
+/* ---------- Card generica ---------- */
+function makeCard(info, cls, tag, tagText, bodyHtml, idSuffix) {
+  const card = document.createElement("div");
+  card.className = "nivel-card " + cls;
+  const explId = "expl-" + idSuffix;
+  card.innerHTML = `
+    <div class="nivel-header">
+      <span class="nivel-code">${info.code}</span>
+      <span class="nivel-tag ${tag}">${escHtml(tagText)}</span>
+    </div>
+    <div class="nivel-title">${info.title}</div>
+    <div class="nivel-subtitle">${info.subtitle}</div>
+    ${bodyHtml}
+    <span class="expl-toggle" onclick="toggleExpl('${explId}')">¿Qué mide exactamente este análisis?</span>
+    <div class="expl-box" id="${explId}">${info.explain}</div>`;
+  return card;
+}
+</script>
+</body>
+</html>

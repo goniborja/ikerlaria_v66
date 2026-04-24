@@ -1,0 +1,28 @@
+# Ikerlaria v6 Portable - Python dependencies
+# Instalar con: pip install -r requirements.txt
+
+# Core scientific stack
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+scikit-learn>=1.3
+joblib>=1.3
+pyarrow>=15.0
+
+# NLP
+spacy>=3.5,<4.0
+nltk>=3.8
+transformers>=4.30
+torch>=2.0
+sentence-transformers>=2.2
+
+# Web server
+flask>=2.3
+flask-cors>=4.0
+
+# Features extra
+vaderSentiment>=3.3
+wordfreq>=3.0
+
+# Grammar checker (requiere Java runtime; el setup descarga JDK portable)
+language_tool_python>=2.7
