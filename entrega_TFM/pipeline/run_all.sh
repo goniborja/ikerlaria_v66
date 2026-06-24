@@ -17,6 +17,9 @@ rm -rf plantilla_extracted && unzip -oq plantilla.docx -d plantilla_extracted
 # 4) Ensamblar: portada, estilos, índices, anexos, encabezado, etc.
 python3 assemble.py
 
+# 4b) Fijar márgenes a 2 cm (requisito de formato del TFE)
+python3 set_margins.py
+
 # 5) Rellenar los índices (TOC / figuras / tablas) y exportar PDF con LibreOffice
 pkill -9 soffice 2>/dev/null || true
 sleep 1
